@@ -54,7 +54,7 @@ namespace CapaDatos
             return lista;
         }
 
-        public int Registrar(Usuario obj, string Mensaje)
+        public int Registrar(Usuario obj, out string Mensaje)
         {
 
             int idautogenerado = 0;
@@ -90,5 +90,65 @@ namespace CapaDatos
             }
             return idautogenerado;
         }
+
+        public bool Editar(Usuario obj, out string Mensaje)
+        {
+            bool resultado = false;
+            Mensaje = string.Empty;
+            try
+            {
+
+                using (SqlConnection oconexion = new SqlConnection(Conexion.cn))
+                {
+                    SqlCommand cmd = new SqlCommand("sp_EditarUsuario", oconexion);
+                    cmd.Parameters.AddWithValue("IdUsuario", obj.IdUsuario);
+                    cmd.Parameters.AddWithValue("Nombres", obj.Nombres);
+                    cmd.Parameters.AddWithValue("Apellidos", obj.Apellidos);
+                    cmd.Parameters.AddWithValue("Correo", obj.Correo);
+                    cmd.Parameters.AddWithValue("Activo", obj.Activo);
+                    cmd.Parameters.Add("Resultado", SqlDbType.Bit).Direction = ParameterDirection.Output;
+                    cmd.Parameters.Add("Mensaje", SqlDbType.VarChar, 500).Direction = ParameterDirection.Output;
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    oconexion.Open();
+
+                    cmd.ExecuteNonQuery();
+
+                    resultado = Convert.ToBoolean(cmd.Parameters["Resultado"].Value);
+                    Mensaje = cmd.Parameters["Mensaje"].Value.ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                resultado = false;
+                Mensaje = ex.Message;
+            }
+            return resultado;
+        }
+
+        public bool Eliminar(int id, out string Mensaje)
+        {
+            bool resultado = false;
+            Mensaje = string.Empty;
+            try
+            {
+
+                using (SqlConnection oconexion = new SqlConnection(Conexion.cn))
+                {
+                    SqlCommand cmd = new SqlCommand("delete top (1) from usuario where IdUsuario = @id", oconexion);
+                    cmd.Parameters.AddWithValue("@id", id);
+                    cmd.CommandType = CommandType.Text;
+                    oconexion.Open();
+                    resultado = cmd.ExecuteNonQuery() > 0 ? true : false;
+                }
+            }
+            catch (Exception ex)
+            {
+                resultado = false;
+                Mensaje = ex.Message;
+            }
+            return resultado;
+        }
+
     }
 }

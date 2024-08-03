@@ -49,20 +49,20 @@
                 <h5 class="modal-title" id="exampleModalLabel">Usuario</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body g-2">
+            <div class="modal-body">
                 <input id="txtid" type="hidden" value="0"/>
-                <div class="row">
+                <div class="row g-2">
                     <div class="col-sm-6">
                         <label for="txtnombres" class="form-label">Nombres</label>
-                        <input type="text" class="form-control" id="txtnombres">
+                        <input type="text" class="form-control" id="txtnombres" autocomplete="off">
                     </div>
                     <div class="col-sm-6">
                         <label for="txtapellidos" class="form-label">Apellidos</label>
-                        <input type="text" class="form-control" id="txtapellidos">
+                        <input type="text" class="form-control" id="txtapellidos" autocomplete="off">
                     </div>
                     <div class="col-sm-6">
                         <label for="txtcorreo" class="form-label">Correo</label>
-                        <input type="email" class="form-control" id="txtcorreo">
+                        <input type="email" class="form-control" id="txtcorreo" autocomplete="off">
                     </div>
                     <div class="col-sm-6">
                         <label for="cboactivo" class="form-label">Activo</label>
@@ -70,6 +70,13 @@
                             <option value="1">Si</option>
                             <option value="0">No</option>
                         </select>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <div id="mensajeError" class="alert alert-danger" role="alert">
+                            A simple warning alert—check it out!
+                        </div>
                     </div>
                 </div>
             </div>
@@ -123,18 +130,19 @@
 
         function abrirModal(json) {
 
-            $("#txtid").val(0)
-            $("#txtnombres").val("")
-            $("#txtapellidos").val("")
-            $("#txtcorreo").val("")
-            $("#cboactivo").val(1)
+            $("#txtid").val(0);
+            $("#txtnombres").val("");
+            $("#txtapellidos").val("");
+            $("#txtcorreo").val("");
+            $("#cboactivo").val(1);
+            $("#mensajeError").hide();
 
             if (json != null) {
-                $("#txtid").val(json.IdUsuario)
-                $("#txtnombres").val(json.Nombres)
-                $("#txtapellidos").val(json.Apellidos)
-                $("#txtcorreo").val(json.Correo)
-                $("#cboactivo").val(json.Activo == true ? 1 : 0)
+                $("#txtid").val(json.IdUsuario);
+                $("#txtnombres").val(json.Nombres);
+                $("#txtapellidos").val(json.Apellidos);
+                $("#txtcorreo").val(json.Correo);
+                $("#cboactivo").val(json.Activo == true ? 1 : 0);
             }
 
             $("#FormModal").modal("show");
@@ -161,17 +169,60 @@
 
             }
 
-            if (Usuario.IdUsuario == 0) {
+            jQuery.ajax({
+                url: '@Url.Action("GuardarUsuario", "Home")',
+                type: "POST",
+                data: JSON.stringify({ objeto : Usuario }),
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
 
-                tabladata.row.add(Usuario).draw(false);
+                success: function (data) {
 
-            } else {
+                    /*debugger;*/
 
-                tabladata.row(filaSeleccionada).data(Usuario).draw(false);
+                    //USUARIO NUEVO
+                    if (Usuario.IdUsuario == 0) {
 
-            }
+                        if (data.resultado != 0) {
 
-            $("#FormModal").modal("hide");
+                            Usuario.IdUsuario = data.resultado;
+                            tabladata.row.add(Usuario).draw(false);
+                            $("#FormModal").modal("hide");
+
+
+                        } else {
+                            $("#mensajeError").text(data.mensaje);
+                            $("#mensajeError").show();
+                        }
+                    
+                    }
+                    //USUARIO EDITAR
+                    else
+                    {
+                        if (data.resultado) {
+
+                            tabladata.row(filaSeleccionada).data(Usuario).draw(false);
+                            filaSeleccionada = null;
+                            $("#FormModal").modal("hide");
+
+                        } else {
+                            $("#mensajeError").text(data.mensaje);
+                            $("#mensajeError").show();
+                        }
+
+                    }
+
+                },
+
+                error: function (error) {
+                    console.log(error);
+                },
+
+                beforeSend: function () {
+                   
+                }
+            });
+  
         }
 
     </script>

@@ -178,7 +178,7 @@
 
                 success: function (data) {
 
-                    /*debugger;*/
+                    $(".modal-body").LoadingOverlay("hide");
 
                     //USUARIO NUEVO
                     if (Usuario.IdUsuario == 0) {
@@ -189,12 +189,10 @@
                             tabladata.row.add(Usuario).draw(false);
                             $("#FormModal").modal("hide");
 
-
                         } else {
                             $("#mensajeError").text(data.mensaje);
                             $("#mensajeError").show();
-                        }
-                    
+                        }                   
                     }
                     //USUARIO EDITAR
                     else
@@ -209,17 +207,21 @@
                             $("#mensajeError").text(data.mensaje);
                             $("#mensajeError").show();
                         }
-
                     }
-
                 },
 
                 error: function (error) {
-                    console.log(error);
+                    $(".modal-body").LoadingOverlay("hide");
+                    $("#mensajeError").text("Error Ajax");
+                    $("#mensajeError").show();
                 },
 
                 beforeSend: function () {
-                   
+                    $(".modal-body").LoadingOverlay("show", {
+                        imageResizeFactor: 2,
+                        text: "Cargando...",
+                        size: 14
+                    })
                 }
             });
   
